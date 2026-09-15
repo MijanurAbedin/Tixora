@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import bcrypt from 'bcrypt';
+import generateToken from "../utills/generateToken.js";
 
 
 export const signup = async (req, res) => {
@@ -12,7 +13,7 @@ export const signup = async (req, res) => {
             })
         }
 
-        const existingUser = await User.findOne({email});
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             res.status(400).json({
                 message: "email already exist"
@@ -80,5 +81,50 @@ export const signup = async (req, res) => {
         })
     }
 
+
+}
+
+
+
+
+export const login = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+
+        const user = await User.findOne({ email });
+
+
+        if (!user) {
+            res.status(400).json({
+                message: "Please Enter a valid email or password"
+            })
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        if (!isPasswordCorrect) {
+            res.status(400).json({
+                message: "incorrect password"
+            })
+        }
+
+        const token = generateToken(user._id);
+        res.status(200).json({
+            message: "Login successfully",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                token: token
+            }
+        })
+
+
+
+    } catch (error) {
+        res.status(500).json({
+            message: ("Server error", error.message)
+        })
+
+    }
 
 }
