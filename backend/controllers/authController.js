@@ -5,7 +5,7 @@ import generateToken from "../utills/generateToken.js";
 
 export const signup = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password,role } = req.body;
 
         if (!name || name.trim() === "") {
             res.status(400).json({
@@ -62,7 +62,8 @@ export const signup = async (req, res) => {
         const user = await User.create({
             name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            role
         })
         res.status(400).json({
             message: "user create successfully",
@@ -114,6 +115,7 @@ export const login = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                role:user.role,
                 token: token
             }
         })

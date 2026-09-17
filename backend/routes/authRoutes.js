@@ -9,7 +9,9 @@ const router = express.Router();
 
  router.get("/events",authMiddleware,(req,res)=>{
     res.status(200).json({
-        message:"Events get successfully"
+        message:"Events get successfully",
+        userid: req.userId,
+        role: req.userRole
     })
  })
 
