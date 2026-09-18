@@ -15,7 +15,8 @@ export const createConcert = async (req, res) => {
             time,
             price,
             totalSeats,
-            availableSeats: totalSeats
+            availableSeats: totalSeats,
+            organizer:req.userId
 
         });
 
@@ -25,6 +26,7 @@ export const createConcert = async (req, res) => {
         })
 
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             message: "Server error"
         })
@@ -121,7 +123,7 @@ export const deleteConcert = async (req, res) => {
                 message: "Concert deleted successffully"
                 
             })
-
+ 
     } catch (error) {
         console.log(error)
         res.status(500).json({
@@ -130,3 +132,19 @@ export const deleteConcert = async (req, res) => {
     }
 
 }
+
+export const getMyConcerts = async (req, res, next) => {
+  try {
+    const concerts = await Concert.find({
+      organizer: req.userId
+    });
+
+    res.status(200).json({
+      message: "My concerts fetched successfully",
+      concerts
+    });
+  } catch (error) {
+   
+     next(error);
+  }
+};
