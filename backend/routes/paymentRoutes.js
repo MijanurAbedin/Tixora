@@ -6,7 +6,7 @@ import { CreatePaymentOrder, mockPaymentSuccess } from '../controllers/paymentCo
 
 const router = express.Router();
 
-router.post("/:bookingId",authMiddleware,CreatePaymentOrder);
-router.post("/mock-success/:paymentId",authMiddleware,mockPaymentSuccess);
+router.post("/:bookingId", authMiddleware, CreatePaymentOrder);
+router.post("/mock-success/:paymentId", authMiddleware, mockPaymentSuccess);
 
 export default router;

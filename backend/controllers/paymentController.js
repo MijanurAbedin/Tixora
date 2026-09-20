@@ -4,18 +4,22 @@ import Payment from '../models/Payment.js';
 
 
 export const CreatePaymentOrder = async (req, res, next) => {
-   
-    try {
-        
-      const {bookingId} = req.params;
-        const booking = await Booking.findOne({
-            _id: bookingId,
-            user:req.userId
-        })
-     
 
-       
-        if (!booking){
+    try {
+
+        const { bookingId } = req.params;
+
+
+        const booking = await Booking.findOne({
+           
+            _id: bookingId,
+             user: req.userId
+        })
+
+
+
+
+        if (!booking) {
             return res.status(404).json({
                 message: "Booking not found"
             })
@@ -48,39 +52,39 @@ export const CreatePaymentOrder = async (req, res, next) => {
         })
 
     } catch (error) {
-console.log(error);
-next(error);
+        console.log(error);
+        next(error);
     }
 
 }
 
-export const mockPaymentSuccess = async (req,res,next)=>{
+export const mockPaymentSuccess = async (req, res, next) => {
 
-    try{
-        const {paymentId} =req.params;
-        const payment  = await Payment.findOne({
-            _id:paymentId,
-            user:req.userId
+    try {
+        const { paymentId } = req.params;
+        const payment = await Payment.findOne({
+            _id: paymentId,
+            user: req.userId
         })
-        if(!payment){
+        if (!payment) {
             return res.status(404).json({
-                message:"Payment not found"
+                message: "Payment not found"
             })
         }
-        if(payment.status==="paid"){
+        if (payment.status === "paid") {
             return res.status(400).json({
-                message:"Payment already completed"
+                message: "Payment already completed"
             })
         }
 
-        const booking  = await Booking.findOne({
-            _id:payment.booking,
-            user:req.userId
+        const booking = await Booking.findOne({
+            _id: payment.booking,
+            user: req.userId
         });
 
-        if(!booking){
+        if (!booking) {
             return res.status(404).json({
-                message:"Booking not found"
+                message: "Booking not found"
             })
         }
         const mockPaymentId = `pay_${crypto.randomBytes(8).toString("hex")}`
@@ -92,11 +96,11 @@ export const mockPaymentSuccess = async (req,res,next)=>{
         await booking.save();
 
         res.status(200).json({
-            message:"Mock payment successfully",
+            message: "Mock payment successfully",
             payment,
             booking
         })
-    }catch(error){
+    } catch (error) {
         console.log(error);
         next(error);
     }
