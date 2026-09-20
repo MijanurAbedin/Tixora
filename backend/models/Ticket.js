@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Concert from "./Concert.js";
+import { type } from "os";
 
 const ticketSchema = new mongoose.Schema({
     booking: {
@@ -31,6 +32,10 @@ const ticketSchema = new mongoose.Schema({
         type: String,
         enum: ["active", "cancelled"],
         default: "active"
+    },
+    qrcode:{
+        type:String,
+        required:true
     }
 },
     {
