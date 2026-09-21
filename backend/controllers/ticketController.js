@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import QRCode from 'qrcode';
 import Ticket from '../models/Ticket.js';
 import Booking from '../models/Booking.js';
-
+import Payment from '../models/Payment.js';
 
 
 export const createTicket = async (req, res, next) => {
@@ -77,5 +77,58 @@ export const getTicketById = async (req, res, next) => {
     } catch (error) {
         console.log(error);
         next(error)
+    }
+}
+
+export const validateTicket = async(req,res,next)=>{
+    try{
+        const {ticketNumber}  =req.params;
+
+        const ticket = await Ticket.findOne({ticketNumber})
+        if(!ticket){
+            return  res.status(404).json({
+                message:"Ticket not found"
+            });
+            
+        }
+
+        if(ticket.status!=="active"){
+            return res.status(400).json({
+                message:"Ticket not active"
+            })
+        }
+
+
+        const booking = await Booking.findById(ticket.booking);
+        if(!booking || booking.status !== "confirmed"){
+            return res.status(400).json({
+                message:"Booking is not  confirmed"
+            })
+        }
+
+        const payment = await Payment.findOne({
+            booking:booking._id,
+            status:"paid"
+        })
+
+        if(!payment || payment.status!=="paid"){
+            return res.status(400).json({
+                message:"Payment is not completed"
+            })
+        }
+
+        return res.status(200).json({
+            message:"Ticket valid",
+            ticket:{
+                ticketNumber:ticket.ticketNumber,
+                satus:ticket.status,
+                bookingId:booking._id,
+                paymentStatus: payment.status
+            }
+        })
+
+    }catch(error){
+        console.log(error);
+        next(error);
     }
 }

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import Concert from "./Concert.js";
-import { type } from "os";
+
+
 
 const ticketSchema = new mongoose.Schema({
     booking: {

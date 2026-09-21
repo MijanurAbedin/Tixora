@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { type } from "os";
+import Booking from "./Booking.js";
+
 
 
 const paymentSchema = new mongoose.Schema({
