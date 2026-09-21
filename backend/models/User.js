@@ -4,20 +4,29 @@ const userSchema = new mongoose.Schema({
 
     name:{
         type:String,
-        require:true
+        required:true
     },
      email:{
         type:String,
-        require:true
+        required:true,
+        unique:true,
+        lowercase:true,
+        trim:true
+        
     },
     password:{
         type:String,
-        require:true
+        required:true
     },
     role:{
         type:String,
         enum:["user","organizer","superadmin"],
         default:"user"
+    },
+    approvalStatus:{
+        type:String,
+        enum:["not_required","pending","approved","rejected"],
+       default:"not_required"
     }
 },
 {

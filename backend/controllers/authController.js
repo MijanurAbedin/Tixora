@@ -5,7 +5,7 @@ import generateToken from "../utills/generateToken.js";
 
 export const signup = async (req, res) => {
     try {
-        const { name, email, password,role } = req.body;
+        const { name, email, password, role } = req.body;
 
         if (!name || name.trim() === "") {
             res.status(400).json({
@@ -13,19 +13,23 @@ export const signup = async (req, res) => {
             })
         }
 
-        const existingUser = await User.findOne({ email });
+        const emailRegex = /^[^/s@]+@[^/s@]+.[^/s@]+$/;
+        if (!emailRegex) {
+            res.status(400).json({
+                message: "Please enter a valid email"
+            })
+        }
+
+        const existingUser = await User.findOne({
+            email: email.toLowerCase().trim()
+        });
         if (existingUser) {
             res.status(400).json({
                 message: "email already exist"
             })
         }
 
-        const emailRegex = /^[^/s@]+@[^/s@]+.[^/s@]+$/;
-        if (!emailRegex) {
-            res.status(400).json({
-                message: "name is required"
-            })
-        }
+
 
 
 
@@ -57,21 +61,40 @@ export const signup = async (req, res) => {
             })
         }
 
+        if(role === "superadmin"){
+            return res.status(403).json({
+                message:"Superadmin signup is not allowed"
+            })
+        }
+
+          let userRole = "user";
+        let approvalStatus = "not_required";
+        if (role === "organizer") {
+          
+            approvalStatus = "pending"
+
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({
-            name,
-            email,
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
             password: hashedPassword,
-            role
+            role: userRole,
+            approvalStatus
+
         })
-        res.status(400).json({
-            message: "user create successfully",
+        res.status(201).json({
+            message: 
+            role ==="organizer"?"Accoount created. You can now apply for organizer approval":"User created successfully",
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                password: user.password
+                role: user.role,
+                approvalStatus: user.approvalStatus
+
             }
         })
 
@@ -92,7 +115,12 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
     try {
 
-        const user = await User.findOne({ email });
+        if (!email || !password) {
+            return res.status(400).json({
+                message: "Email and passsword are required"
+            })
+        }
+        const user = await User.findOne({ email:email.toLowerCase().trim() });
 
 
         if (!user) {
@@ -108,6 +136,12 @@ export const login = async (req, res) => {
             })
         }
 
+        if (user.role === "organizer" && user.approvalStatus !== "approved") {
+            return res.status(403).json({
+                message: `organizer account is ${user.approvalStatus}`
+            })
+        }
+
         const token = generateToken(user._id);
         res.status(200).json({
             message: "Login successfully",
@@ -115,7 +149,8 @@ export const login = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role:user.role,
+                role: user.role,
+                approvalStatus: user.approvalStatus,
                 token: token
             }
         })

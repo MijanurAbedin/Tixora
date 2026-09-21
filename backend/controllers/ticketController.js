@@ -91,7 +91,7 @@ export const validateTicket = async(req,res,next)=>{
             });
             
         }
-
+ 
         if(ticket.status!=="active"){
             return res.status(400).json({
                 message:"Ticket not active"
