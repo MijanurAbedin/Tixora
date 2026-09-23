@@ -112,8 +112,21 @@ export const signup = async (req, res) => {
 
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+   
+
+    
     try {
+       
+
+      
+
+        if (!req.body) {
+            return res.status(400).json({
+                message: "Request body missing. Check app.js middleware and request format."
+            });
+        }
+
+const {email,password } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({

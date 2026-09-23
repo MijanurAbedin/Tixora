@@ -49,6 +49,12 @@ const OrganizerApplicationSchema = new mongoose.Schema({
      facebook:String,
      youtube:String
     },
+    documents:{
+        originalName : String,
+        fileName:String,
+        filePath:String,
+        mimeType:String
+    },
     status:{
         type:String,
         enum:["pending", "approved", "rejected"],

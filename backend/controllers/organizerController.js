@@ -4,7 +4,28 @@ export const applyForOrganizer = async (req, res) => {
     try {
         const userId = req.userId;
 
-        const { groupName, description, teamMembers, phone, website, socialLinks } = req.body;
+        const { groupName, description,teamMembers, phone, website,socialLinks } = req.body;
+
+
+let parsedTeamMembers = req.body.teamMembers;
+let parsedSocialLinks  =req.body.socialLinks;
+
+try{
+if(typeof parsedTeamMembers === "string"){
+    parsedTeamMembers = JSON.parse(parsedTeamMembers);
+}
+
+if(typeof parsedSocialLinks === "string"){
+    parsedSocialLinks = JSON.parse(parsedSocialLinks);
+}
+
+
+}catch(error){
+    return res.status(500).json({
+        message:"invalid team Members or  socialLinks JSON"
+    })
+}
+
 
         if (!groupName || !description || !phone) {
             return res.status(400).json({
@@ -18,14 +39,23 @@ export const applyForOrganizer = async (req, res) => {
                 message: "Organizer application already exists"
             })
         }
+
+        const uploadedDocuments = req.files?.map((file)=>({
+          originalName:file.originalName,
+          fileName:file.fileName,
+          filePath:file.path,
+          mimeType:file.mimeType
+        })) || [];
+
         const application = await OrganizerApplication.create({
             user: userId,
             groupName,
             description,
-            teamMembers,
+            teamMembers:parsedTeamMembers,
             phone,
             website,
-            socialLinks
+            socialLinks: parsedSocialLinks,
+            documents: uploadedDocuments
 
         })
         return res.status(201).json({
@@ -61,7 +91,6 @@ export const getMyOrganizerApplication = async (req,res)=>{
 
     }catch(error){
         console.log(error);
-console.error(error);
 return res.status(500).json({
     message:"Server error"
 })
