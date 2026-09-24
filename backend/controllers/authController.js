@@ -8,14 +8,14 @@ export const signup = async (req, res) => {
         const { name, email, password, role } = req.body;
 
         if (!name || name.trim() === "") {
-            res.status(400).json({
+            return res.status(400).json({
                 message: "name is required"
             })
         }
 
         const emailRegex = /^[^/s@]+@[^/s@]+.[^/s@]+$/;
         if (!emailRegex) {
-            res.status(400).json({
+            return res.status(400).json({
                 message: "Please enter a valid email"
             })
         }
@@ -24,7 +24,7 @@ export const signup = async (req, res) => {
             email: email.toLowerCase().trim()
         });
         if (existingUser) {
-            res.status(400).json({
+            return res.status(400).json({
                 message: "email already exist"
             })
         }
@@ -34,13 +34,13 @@ export const signup = async (req, res) => {
 
 
         if (!password) {
-            res.status(400).json({
+            return res.status(400).json({
                 message: "password is required"
             })
         }
 
         if (password.length < 10) {
-            res.status(400).json({
+            return res.status(400).json({
                 message: "Password must be 10 charecter"
             })
 
@@ -61,16 +61,17 @@ export const signup = async (req, res) => {
             })
         }
 
-        if(role === "superadmin"){
-            return res.status(403).json({
-                message:"Superadmin signup is not allowed"
-            })
+        if (!["user", "organizer"].includes(role)) {
+            return res.status(400).json({
+                message: "Invalid signup type"
+            });
         }
 
-          let userRole = "user";
+
+        let userRole = "user";
         let approvalStatus = "not_required";
         if (role === "organizer") {
-          
+
             approvalStatus = "pending"
 
         }
@@ -81,18 +82,21 @@ export const signup = async (req, res) => {
             name: name.trim(),
             email: email.toLowerCase().trim(),
             password: hashedPassword,
+            signUpType: role === "organizer" ? "organizer" : "user",
             role: userRole,
+
             approvalStatus
 
         })
         res.status(201).json({
-            message: 
-            role ==="organizer"?"Accoount created. You can now apply for organizer approval":"User created successfully",
+            message:
+                role === "organizer" ? "Accoount created. You can now apply for organizer approval" : "User created successfully",
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                signUpType: user.signUpType,
                 approvalStatus: user.approvalStatus
 
             }
@@ -112,13 +116,13 @@ export const signup = async (req, res) => {
 
 
 export const login = async (req, res) => {
-   
 
-    
+
+
     try {
-       
 
-      
+
+
 
         if (!req.body) {
             return res.status(400).json({
@@ -126,14 +130,20 @@ export const login = async (req, res) => {
             });
         }
 
-const {email,password } = req.body;
+        const { email, password, loginAs } = req.body;
 
+
+        if (!["user", "organizer", "superadmin"].includes(loginAs)) {
+            return res.status(400).json({
+                message: "Invalid login type"
+            });
+        }
         if (!email || !password) {
             return res.status(400).json({
                 message: "Email and passsword are required"
             })
         }
-        const user = await User.findOne({ email:email.toLowerCase().trim() });
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
 
 
         if (!user) {
@@ -149,11 +159,39 @@ const {email,password } = req.body;
             })
         }
 
+
+        if (loginAs === "user") {
+            if (user.role !== "user" || user.signUpType !== "user") {
+                return res.status(403).json({
+                    message: "This account cannot login as User"
+                });
+            }
+        }
+
+        if (loginAs === "organizer") {
+            if (user.signUpType !== "organizer") {
+                return res.status(403).json({
+                    message: "This account was not registered as Organizer"
+                });
+            }
+        }
+
+        if (loginAs === "superadmin" && user.role !== "superadmin") {
+            return res.status(403).json({
+                message: "Superadmin access denied"
+            });
+        }
+
+
+
+
         if (user.role === "organizer" && user.approvalStatus !== "approved") {
             return res.status(403).json({
                 message: `organizer account is ${user.approvalStatus}`
             })
         }
+
+        
 
         const token = generateToken(user._id);
         res.status(200).json({
@@ -163,6 +201,7 @@ const {email,password } = req.body;
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                signUpType: user.signUpType,
                 approvalStatus: user.approvalStatus,
                 token: token
             }

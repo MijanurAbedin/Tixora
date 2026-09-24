@@ -23,6 +23,11 @@ const userSchema = new mongoose.Schema({
         enum:["user","organizer","superadmin"],
         default:"user"
     },
+    signUpType:{
+     type: String,
+    enum: ["user", "organizer"],
+    default: "user"
+    },
     approvalStatus:{
         type:String,
         enum:["not_required","pending","approved","rejected"],

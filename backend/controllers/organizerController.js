@@ -1,8 +1,27 @@
 import OrganizerApplication from "../models/OrganizerApplication.js";
-
+import User from "../models/User.js";
 export const applyForOrganizer = async (req, res) => {
     try {
         const userId = req.userId;
+        const user = await User.findById(userId);
+
+if (!user) {
+    return res.status(404).json({
+        message: "User not found"
+    });
+}
+
+if (user.signUpType !== "organizer") {
+    return res.status(403).json({
+        message: "Only users registered as organizers can apply"
+    });
+}
+
+if (user.role !== "user" || user.approvalStatus === "approved") {
+    return res.status(403).json({
+        message: "You cannot apply with this account"
+    });
+}
 
         const { groupName, description,teamMembers, phone, website,socialLinks } = req.body;
 
